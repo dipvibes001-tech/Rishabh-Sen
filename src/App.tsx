@@ -27,7 +27,7 @@ import {
   getAdminToken,
 } from './services/api';
 
-// Saare components ke liye verified live fallback data (Taaki ek bhi section empty na rahe)
+// Verified Studio Data taaki site bina backend response ke bhi 100% visible rahe
 const initialStudioContent: PublicContentResponse = {
   siteSettings: {
     hero: {
@@ -41,7 +41,7 @@ const initialStudioContent: PublicContentResponse = {
     about: {
       heading: "Capturing Cinema in Everyday Moments",
       description: "Visual storyteller specializing in luxury wedding cinematography and editorial photography.",
-      story: "Over a decade of experience creating timeless visual narratives across the globe. We treat each wedding as an authentic heirloom.",
+      story: "Over a decade of experience crafting timeless visual narratives across the globe. We treat each wedding and film as an authentic heirloom.",
       yearsExperience: 10,
       projectsCompleted: 350,
       happyClients: 280,
@@ -105,18 +105,13 @@ const initialStudioContent: PublicContentResponse = {
 
 export default function App() {
   const [currentPath, setCurrentPath] = useState<string>(() => window.location.pathname);
-  // Initial state me hi poora data rahega taaki screen par white/black loading freeze na aaye
+  // Default data se start karein taaki loading loop na bane
   const [content, setContent] = useState<PublicContentResponse>(initialStudioContent);
   const [selectedService, setSelectedService] = useState<string>('');
-
-  // Admin authentication state
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
 
-  // Sync with browser navigation
   useEffect(() => {
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname);
-    };
+    const handlePopState = () => setCurrentPath(window.location.pathname);
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
@@ -127,7 +122,6 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Verify Admin Session on mount
   useEffect(() => {
     const verifyAuth = async () => {
       const token = getAdminToken();
@@ -142,7 +136,6 @@ export default function App() {
     verifyAuth();
   }, []);
 
-  // Fetch Public Content in background
   useEffect(() => {
     let isMounted = true;
     const loadContent = async () => {
@@ -152,19 +145,18 @@ export default function App() {
           setContent(data);
         }
       } catch (err) {
-        console.warn('API sync in progress, serving full studio archive:', err);
+        console.warn('Backend sync in progress, displaying fallback studio content:', err);
       }
     };
     loadContent();
     return () => { isMounted = false; };
   }, []);
 
-  // Guard: if accessing /admin but not authenticated, redirect to /admin/login
+  // Admin Routes
   const isAdminSecurityRoute = currentPath === '/admin/security';
   const isAdminDashboardRoute = currentPath === '/admin' || currentPath.startsWith('/admin/');
   const isAdminLoginRoute = currentPath === '/admin/login';
 
-  // Admin Login Page
   if (isAdminLoginRoute) {
     if (adminUser) {
       navigateTo('/admin');
@@ -181,7 +173,6 @@ export default function App() {
     );
   }
 
-  // Admin Dashboard Page (Protected)
   if (isAdminDashboardRoute) {
     if (!adminUser) {
       navigateTo('/admin/login');
@@ -205,13 +196,15 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#080B0D] text-white font-sans-clean selection:bg-[#65E6EA] selection:text-[#080B0D] relative overflow-x-hidden">
       
+      {/* Subtle Studio Glow Background */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-[#65E6EA]/5 rounded-full blur-[160px] pointer-events-none z-0" />
+
       {/* 1. Premium Sticky Navigation */}
       <Navbar onAdminClick={() => navigateTo(adminUser ? '/admin' : '/admin/login')} />
 
-      {/* 2. Hero Section */}
-      <section className="relative min-h-[92vh] flex items-center justify-center pt-28 pb-16 px-6 text-center">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-[#65E6EA]/10 rounded-full blur-[140px] pointer-events-none" />
-        <div className="max-w-4xl mx-auto space-y-7 relative z-10">
+      {/* 2. Full Cinematic Hero Section */}
+      <section className="relative min-h-[92vh] flex items-center justify-center pt-28 pb-16 px-6 text-center z-10">
+        <div className="max-w-4xl mx-auto space-y-7">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#12181C] border border-[#65E6EA]/30 text-[#65E6EA] text-[11px] tracking-[0.25em] uppercase font-mono">
             <span className="w-2 h-2 rounded-full bg-[#65E6EA] animate-pulse" />
             Cinematographer & Visual Artist
@@ -242,13 +235,13 @@ export default function App() {
         </div>
       </section>
 
-      {/* 3. About Section (First Main Section) */}
+      {/* 3. About Section */}
       <About about={content.siteSettings.about} />
 
-      {/* 4. Cinematography / Films Showcase (Featured Video Player) */}
+      {/* 4. Films Showcase */}
       <FilmsShowcase films={content.films || []} />
 
-      {/* 5. Portfolio Section (Masonry Visual Archive) */}
+      {/* 5. Curated Portfolio */}
       <Portfolio portfolio={content.portfolio || []} />
 
       {/* 6. Services Section */}
@@ -261,7 +254,7 @@ export default function App() {
         }}
       />
 
-      {/* 7. Featured Story Section */}
+      {/* 7. Featured Story */}
       <FeaturedStory story={content.siteSettings.featuredStory} />
 
       {/* 8. Highlights Section */}
