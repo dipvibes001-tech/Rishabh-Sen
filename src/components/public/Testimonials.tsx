@@ -1,90 +1,46 @@
 import React from 'react';
-import { Star, Quote, Sparkles } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { TestimonialItem } from '../../types';
-import { Card3D } from '../common/Card3D';
 
 interface TestimonialsProps {
-  testimonials: TestimonialItem[];
+  testimonials?: TestimonialItem[];
 }
 
-export const Testimonials: React.FC<TestimonialsProps> = ({ testimonials }) => {
+const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
+  { id: "1", clientName: "Aarav & Meera", eventType: "Destination Wedding", rating: 5, review: "Rishabh captured our wedding like an international feature film. Every frame felt surreal and deeply emotional." },
+  { id: "2", clientName: "Kabir Malhotra", eventType: "Commercial Campaign", rating: 5, review: "Exceptional visual eye and punctuality. The lighting and color grading elevated our brand aesthetic completely." }
+];
+
+export const Testimonials: React.FC<TestimonialsProps> = ({ testimonials = [] }) => {
+  const items = Array.isArray(testimonials) && testimonials.length > 0 ? testimonials : DEFAULT_TESTIMONIALS;
+
   return (
-    <section className="py-28 bg-[#080B0D] relative border-t border-white/10 z-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#12181C] border border-[#65E6EA]/30 text-xs font-semibold tracking-wider text-[#65E6EA] uppercase mb-4 shadow-[0_0_15px_rgba(101,230,234,0.15)]">
-            <Sparkles className="w-3.5 h-3.5 text-[#8B7CFF]" />
-            <span>06. Client Endorsements</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white font-display mb-4">
-            Words of <span className="gradient-studio-text">Appreciation</span>
-          </h2>
-          <p className="text-sm sm:text-base text-[#9CA7AD] font-sans-clean font-light leading-relaxed">
-            Unfiltered reflections from royal couples, editorial directors, and luxury brand patrons.
-          </p>
+    <section id="testimonials" className="py-24 bg-[#0C1014] border-t border-white/10 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 text-center space-y-12">
+        <div className="space-y-3">
+          <span className="text-xs uppercase tracking-[0.3em] text-[#65E6EA] font-mono">Testimonials</span>
+          <h2 className="text-3xl md:text-5xl font-serif font-bold text-white">Client Words</h2>
         </div>
 
-        {/* 3D Testimonials Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {testimonials.map((test, index) => (
-            <Card3D key={test.id || index} maxTilt={7} glareOpacity={0.15}>
-              <div className="bg-[#12181C] border border-white/10 hover:border-[#65E6EA]/40 p-8 sm:p-9 rounded-2xl transition-all duration-300 flex flex-col justify-between h-full relative group shadow-xl">
-                <div>
-                  {/* Top: Star Rating & Quote Glyph */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-1 text-[#65E6EA]">
-                      {Array.from({ length: test.rating || 5 }).map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-current drop-shadow-[0_0_8px_rgba(101,230,234,0.5)]" />
-                      ))}
-                    </div>
-                    <Quote className="w-6 h-6 text-white/10 group-hover:text-[#65E6EA]/40 transition-colors" />
-                  </div>
-
-                  {/* Review Text */}
-                  <p className="text-sm sm:text-base font-editorial italic text-white/90 leading-relaxed mb-6 font-light">
-                    &ldquo;{test.review}&rdquo;
-                  </p>
-                </div>
-
-                {/* Client Info */}
-                <div className="pt-6 border-t border-white/5 flex items-center gap-3.5">
-                  {test.avatarUrl ? (
-                    <img
-                      src={test.avatarUrl}
-                      alt={test.name}
-                      className="w-11 h-11 rounded-full object-cover border border-[#65E6EA]/40"
-                    />
-                  ) : (
-                    <div className="w-11 h-11 rounded-xl bg-[#0D1215] border border-white/10 flex items-center justify-center text-xs font-display font-bold text-[#65E6EA] uppercase shadow-inner">
-                      {test.name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .slice(0, 2)
-                        .join('')}
-                    </div>
-                  )}
-
-                  <div>
-                    <h4 className="text-sm font-display font-bold text-white">
-                      {test.name}
-                    </h4>
-                    <div className="text-xs text-[#9CA7AD] flex items-center gap-1.5 font-sans-clean font-light">
-                      <span>{test.eventType}</span>
-                      {test.location && (
-                        <>
-                          <span className="text-white/20">·</span>
-                          <span>{test.location}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+          {items.map((t, idx) => (
+            <div key={t.id || idx} className="p-8 rounded-2xl bg-[#0F1418] border border-white/10 space-y-4">
+              <div className="flex gap-1 text-[#65E6EA]">
+                {[...Array(t.rating || 5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 fill-[#65E6EA]" />
+                ))}
               </div>
-            </Card3D>
+              <p className="text-sm text-gray-300 italic leading-relaxed">"{t.review}"</p>
+              <div className="pt-4 border-t border-white/5">
+                <div className="text-sm font-serif font-bold text-white">{t.clientName}</div>
+                <div className="text-[11px] font-mono text-gray-400 mt-0.5">{t.eventType}</div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
     </section>
   );
 };
+
+export default Testimonials;
