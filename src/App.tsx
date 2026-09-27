@@ -29,9 +29,18 @@ import {
   getAdminToken,
 } from './services/api';
 
-// Fallback default data agar API/Database connect na ho
+// Complete Safe Fallback Content Structure
 const fallbackContent: PublicContentResponse = {
   siteSettings: {
+    hero: {
+      title: "Rishabh Sen",
+      subtitle: "Cinematographer & Visual Storyteller",
+      description: "Crafting timeless cinematic experiences & fine art photography.",
+      badgeText: "Cinematic Excellence",
+      primaryCtaText: "View Portfolio",
+      secondaryCtaText: "Book Session",
+      heroImageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80"
+    },
     about: {
       heading: "Capturing Cinema in Everyday Moments",
       description: "Visual storyteller specializing in luxury wedding cinematography and editorial photography.",
@@ -40,6 +49,7 @@ const fallbackContent: PublicContentResponse = {
       projectsCompleted: 250,
       happyClients: 180,
       eventsCovered: 300,
+      profileImageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80"
     },
     featuredStory: {
       title: "A Royal Destination Wedding in Udaipur",
@@ -47,9 +57,9 @@ const fallbackContent: PublicContentResponse = {
       imageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     },
     highlights: [
-      { title: "Storytelling", description: "Narrative-driven visual composition." },
-      { title: "Sound & Music", description: "Custom audio scoring & sound design." },
-      { title: "Attention to Detail", description: "Precision color grading & editing." }
+      { id: "1", title: "Storytelling", description: "Narrative-driven visual composition." },
+      { id: "2", title: "Sound & Music", description: "Custom audio scoring & sound design." },
+      { id: "3", title: "Attention to Detail", description: "Precision color grading & editing." }
     ],
     contact: {
       email: "contact@cinematicrishabh.site",
@@ -78,7 +88,7 @@ const fallbackContent: PublicContentResponse = {
 
 export default function App() {
   const [currentPath, setCurrentPath] = useState<string>(() => window.location.pathname);
-  const [content, setContent] = useState<PublicContentResponse | null>(null);
+  const [content, setContent] = useState<PublicContentResponse>(fallbackContent);
   const [loading, setLoading] = useState(true);
   const [selectedService, setSelectedService] = useState<string>('');
   const [showLoadingScreen, setShowLoadingScreen] = useState<boolean>(true);
@@ -102,35 +112,48 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Verify Admin Session on mount
+  // Verify Admin Session on mount with Timeout Safety
   useEffect(() => {
+    let isMounted = true;
     const verifyAuth = async () => {
       const token = getAdminToken();
       if (!token) {
-        setAuthChecking(false);
+        if (isMounted) setAuthChecking(false);
         return;
       }
       try {
-        const { admin } = await fetchAdminMe();
-        setAdminUser(admin);
+        const authPromise = fetchAdminMe();
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Auth Timeout')), 3000)
+        );
+        const { admin }: any = await Promise.race([authPromise, timeoutPromise]);
+        if (isMounted) setAdminUser(admin);
       } catch {
-        setAdminUser(null);
+        if (isMounted) setAdminUser(null);
       } finally {
-        setAuthChecking(false);
+        if (isMounted) setAuthChecking(false);
       }
     };
 
     verifyAuth();
+    return () => { isMounted = false; };
   }, []);
 
-  // Fetch Public Content with Auto-Fallback
+  // Fetch Public Content with 3-Second Timeout Safety
   const loadPublicContent = async () => {
     try {
       setLoading(true);
-      const data = await fetchPublicContent();
-      if (data) {
+      const apiPromise = fetchPublicContent();
+      const timeoutPromise = new Promise((resolve) =>
+        setTimeout(() => resolve(null), 3000)
+      );
+
+      const data: any = await Promise.race([apiPromise, timeoutPromise]);
+
+      if (data && data.siteSettings) {
         setContent(data);
       } else {
+        console.warn('Backend connection delayed/unavailable. Loaded fallback content.');
         setContent(fallbackContent);
       }
     } catch (err) {
@@ -145,7 +168,7 @@ export default function App() {
     loadPublicContent();
   }, []);
 
-  // Guard: if accessing /admin but not authenticated, redirect to /admin/login
+  // Guard Routes
   const isAdminSecurityRoute = currentPath === '/admin/security';
   const isAdminDashboardRoute = currentPath === '/admin' || currentPath.startsWith('/admin/');
   const isAdminLoginRoute = currentPath === '/admin/login';
@@ -204,45 +227,38 @@ export default function App() {
     );
   }
 
-  // Public Portfolio Website
-  if (!content) {
-    return (
-      <div className="min-h-screen bg-[#080B0D] flex items-center justify-center text-white">
-        <div className="text-center space-y-4">
-          <div className="w-10 h-10 border-2 border-[#65E6EA] border-t-transparent rounded-full animate-spin mx-auto shadow-[0_0_20px_rgba(101,230,234,0.35)]" />
-          <p className="text-xs uppercase tracking-widest text-[#9CA7AD] font-mono">
-            Loading Cinematography & Portfolio Archive...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Safe Extraction of Props
+  const siteSettings = content?.siteSettings || fallbackContent.siteSettings;
+  const services = content?.services || fallbackContent.services;
+  const portfolio = content?.portfolio || fallbackContent.portfolio;
+  const films = content?.films || [];
+  const testimonials = content?.testimonials || [];
 
   return (
-    <div className="min-h-screen bg-[#080B0D] text-white font-sans-clean selection:bg-[#65E6EA] selection:text-[#080B0D] relative">
-      {/* Professional initial reveal loading animation */}
+    <div className="min-h-screen bg-[#080B0D] text-white font-sans selection:bg-[#65E6EA] selection:text-[#080B0D] relative">
+      {/* Loading Animation Overlay */}
       {showLoadingScreen && (
         <LoadingScreen onFinished={() => setShowLoadingScreen(false)} />
       )}
 
-      {/* Dynamic 3D Cinematic Animated Background */}
+      {/* Dynamic 3D Cinematic Background */}
       <CinematicBackground />
 
-      {/* 1. Premium Sticky Navigation */}
+      {/* 1. Sticky Navigation */}
       <Navbar onAdminClick={() => navigateTo(adminUser ? '/admin' : '/admin/login')} />
 
       {/* 2. About Section */}
-      <About about={content.siteSettings.about} />
+      {siteSettings?.about && <About about={siteSettings.about} />}
 
       {/* 3. Cinematography / Films Showcase */}
-      <FilmsShowcase films={content.films || []} />
+      <FilmsShowcase films={films} />
 
       {/* 4. Portfolio Section */}
-      <Portfolio portfolio={content.portfolio} />
+      <Portfolio portfolio={portfolio} />
 
       {/* 5. Services Section */}
       <Services
-        services={content.services}
+        services={services}
         onSelectService={(title) => {
           setSelectedService(title);
           const el = document.getElementById('contact');
@@ -251,29 +267,39 @@ export default function App() {
       />
 
       {/* 6. Featured Story Section */}
-      <FeaturedStory story={content.siteSettings.featuredStory} />
+      {siteSettings?.featuredStory && (
+        <FeaturedStory story={siteSettings.featuredStory} />
+      )}
 
-      {/* 8. Highlights Section */}
-      <Highlights highlights={content.siteSettings.highlights} />
+      {/* 7. Highlights Section */}
+      {siteSettings?.highlights && (
+        <Highlights highlights={siteSettings.highlights} />
+      )}
 
-      {/* 9. Testimonials Section */}
-      <Testimonials testimonials={content.testimonials} />
+      {/* 8. Testimonials Section */}
+      <Testimonials testimonials={testimonials} />
 
-      {/* 10. Social Section */}
-      <SocialSection contact={content.siteSettings.contact} />
+      {/* 9. Social Section */}
+      {siteSettings?.contact && (
+        <SocialSection contact={siteSettings.contact} />
+      )}
 
-      {/* 11. Contact Section */}
-      <ContactSection
-        contact={content.siteSettings.contact}
-        initialService={selectedService}
-      />
+      {/* 10. Contact Section */}
+      {siteSettings?.contact && (
+        <ContactSection
+          contact={siteSettings.contact}
+          initialService={selectedService}
+        />
+      )}
 
-      {/* 12. Footer */}
-      <Footer
-        footer={content.siteSettings.footer}
-        contact={content.siteSettings.contact}
-        onAdminClick={() => navigateTo(adminUser ? '/admin' : '/admin/login')}
-      />
+      {/* 11. Footer */}
+      {siteSettings?.footer && siteSettings?.contact && (
+        <Footer
+          footer={siteSettings.footer}
+          contact={siteSettings.contact}
+          onAdminClick={() => navigateTo(adminUser ? '/admin' : '/admin/login')}
+        />
+      )}
     </div>
   );
 }
