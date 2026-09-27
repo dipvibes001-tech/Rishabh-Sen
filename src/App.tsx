@@ -15,7 +15,6 @@ import { Testimonials } from './components/public/Testimonials';
 import { SocialSection } from './components/public/SocialSection';
 import { ContactSection } from './components/public/ContactSection';
 import { Footer } from './components/public/Footer';
-import { CinematicBackground } from './components/common/CinematicBackground';
 import { AdminLogin } from './components/admin/AdminLogin';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import {
@@ -28,9 +27,17 @@ import {
   getAdminToken,
 } from './services/api';
 
-// Agar database ya API respond na kare to ye instant load hoga
+// Safe Default Data (Database connect na hone par bhi site 100% chalegi)
 const defaultPortfolioContent: PublicContentResponse = {
   siteSettings: {
+    hero: {
+      title: "Rishabh Sen",
+      subtitle: "Crafting Timeless Visual Narratives",
+      description: "Specializing in luxury wedding cinematography, editorial fashion, and fine art storytelling across India and worldwide.",
+      badgeText: "Cinematographer & Visual Artist",
+      primaryCtaText: "View Portfolio",
+      secondaryCtaText: "Book a Session"
+    },
     about: {
       heading: "Capturing Cinema in Everyday Moments",
       description: "Visual storyteller specializing in luxury wedding cinematography and editorial photography.",
@@ -51,7 +58,7 @@ const defaultPortfolioContent: PublicContentResponse = {
       { title: "Attention to Detail", description: "Precision color grading tailored to natural lighting." }
     ],
     contact: {
-      email: "contact@rishabhsen.com",
+      email: "contact@cinematicrishabh.site",
       phone: "+91 98765 43210",
       address: "Mumbai / New Delhi, India",
       instagramUrl: "https://instagram.com",
@@ -73,12 +80,12 @@ const defaultPortfolioContent: PublicContentResponse = {
     { id: "8", title: "Short Films", description: "Independent narrative shorts, music videos, and documentaries.", icon: "play", active: true }
   ],
   portfolio: [
-    { id: "1", title: "Royal Udaipur Palace", category: "Weddings", imageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80" },
-    { id: "2", title: "Sunset In The Dunes", category: "Pre-Weddings", imageUrl: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80" },
-    { id: "3", title: "Monochrome Editorial", category: "Portraits", imageUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80" },
-    { id: "4", title: "Vogue Street Campaign", category: "Commercial", imageUrl: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80" },
-    { id: "5", title: "Heritage Gala Night", category: "Events", imageUrl: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80" },
-    { id: "6", title: "Golden Hour Vows", category: "Cinematography", imageUrl: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80" }
+    { id: "1", title: "Royal Udaipur Palace", category: "Weddings", imageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80", description: "A royal celebration", client: "Royal Wedding", year: "2026", featured: true },
+    { id: "2", title: "Sunset In The Dunes", category: "Pre-Weddings", imageUrl: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80", description: "Sunset desert shoot", client: "Couple Portrait", year: "2026", featured: false },
+    { id: "3", title: "Monochrome Editorial", category: "Portraits", imageUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80", description: "Studio lighting", client: "Editorial", year: "2025", featured: false },
+    { id: "4", title: "Vogue Street Campaign", category: "Commercial", imageUrl: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80", description: "Street fashion campaign", client: "Vogue", year: "2026", featured: true },
+    { id: "5", title: "Heritage Gala Night", category: "Events", imageUrl: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80", description: "VIP banquet", client: "Gala Event", year: "2025", featured: false },
+    { id: "6", title: "Golden Hour Vows", category: "Cinematography", imageUrl: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80", description: "Cinematic stills", client: "Private Client", year: "2026", featured: false }
   ],
   films: [],
   testimonials: [
@@ -89,19 +96,13 @@ const defaultPortfolioContent: PublicContentResponse = {
 
 export default function App() {
   const [currentPath, setCurrentPath] = useState<string>(() => window.location.pathname);
-  // Default data se start karein taaki loading par na atke
   const [content, setContent] = useState<PublicContentResponse>(defaultPortfolioContent);
   const [selectedService, setSelectedService] = useState<string>('');
-
-  // Admin authentication state
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
-  const [authChecking, setAuthChecking] = useState(false);
 
-  // Sync with browser navigation
+  // Sync route
   useEffect(() => {
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname);
-    };
+    const handlePopState = () => setCurrentPath(window.location.pathname);
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
@@ -112,7 +113,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Verify Admin Session
+  // Auth verify
   useEffect(() => {
     const verifyAuth = async () => {
       const token = getAdminToken();
@@ -127,22 +128,24 @@ export default function App() {
     verifyAuth();
   }, []);
 
-  // Fetch Public Content in background
+  // Safe background content fetch
   useEffect(() => {
+    let isMounted = true;
     const loadData = async () => {
       try {
         const data = await fetchPublicContent();
-        if (data && data.siteSettings) {
+        if (isMounted && data && data.siteSettings) {
           setContent(data);
         }
       } catch (err) {
-        console.warn('API unavailable, continuing with offline default content:', err);
+        console.warn('API connection pending, serving cached default theme:', err);
       }
     };
     loadData();
+    return () => { isMounted = false; };
   }, []);
 
-  // Admin Login Route
+  // Admin login screen
   if (currentPath === '/admin/login') {
     if (adminUser) {
       navigateTo('/admin');
@@ -159,7 +162,7 @@ export default function App() {
     );
   }
 
-  // Admin Dashboard Route
+  // Admin dashboard
   if (currentPath === '/admin' || currentPath.startsWith('/admin/')) {
     if (!adminUser) {
       navigateTo('/admin/login');
@@ -180,15 +183,14 @@ export default function App() {
 
   // Public Portfolio Website
   return (
-    <div className="min-h-screen bg-[#080B0D] text-white font-sans-clean selection:bg-[#65E6EA] selection:text-[#080B0D] relative">
-      <CinematicBackground />
-
-      {/* 1. Navigation */}
+    <div className="w-full min-h-screen bg-[#080B0D] text-white font-sans selection:bg-[#65E6EA] selection:text-[#080B0D] overflow-x-hidden">
+      
+      {/* 1. Navbar */}
       <Navbar onAdminClick={() => navigateTo(adminUser ? '/admin' : '/admin/login')} />
 
-      {/* 2. Hero Section */}
+      {/* 2. Hero Section (In-line safe rendering) */}
       <section className="relative min-h-[92vh] flex items-center justify-center pt-28 pb-16 px-6 text-center">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-[#65E6EA]/5 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#65E6EA]/10 rounded-full blur-[140px] pointer-events-none" />
         <div className="max-w-4xl mx-auto space-y-7 relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#12181C] border border-[#65E6EA]/30 text-[#65E6EA] text-[11px] tracking-[0.25em] uppercase font-mono">
             <span className="w-2 h-2 rounded-full bg-[#65E6EA] animate-pulse" />
@@ -201,7 +203,7 @@ export default function App() {
             Crafting Timeless Visual Narratives
           </p>
           <p className="text-sm md:text-base text-gray-400 max-w-xl mx-auto leading-relaxed">
-            Specializing in luxury wedding cinematography, editorial fashion, and fine art storytelling across India and worldwide.
+            Specializing in luxury wedding cinematography, editorial fashion, and fine art storytelling across India and worldwide destinations.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <a
@@ -220,18 +222,20 @@ export default function App() {
         </div>
       </section>
 
-      {/* 3. About */}
-      <About about={content.siteSettings.about} />
+      {/* 3. About Section */}
+      {content.siteSettings?.about && (
+        <About about={content.siteSettings.about} />
+      )}
 
       {/* 4. Films Showcase */}
       <FilmsShowcase films={content.films || []} />
 
-      {/* 5. Portfolio */}
-      <Portfolio portfolio={content.portfolio} />
+      {/* 5. Curated Portfolio */}
+      <Portfolio portfolio={content.portfolio || []} />
 
       {/* 6. Services */}
       <Services
-        services={content.services}
+        services={content.services || []}
         onSelectService={(title) => {
           setSelectedService(title);
           const el = document.getElementById('contact');
@@ -240,30 +244,41 @@ export default function App() {
       />
 
       {/* 7. Featured Story */}
-      <FeaturedStory story={content.siteSettings.featuredStory} />
+      {content.siteSettings?.featuredStory && (
+        <FeaturedStory story={content.siteSettings.featuredStory} />
+      )}
 
       {/* 8. Highlights */}
-      <Highlights highlights={content.siteSettings.highlights} />
+      {content.siteSettings?.highlights && (
+        <Highlights highlights={content.siteSettings.highlights} />
+      )}
 
       {/* 9. Testimonials */}
-      <Testimonials testimonials={content.testimonials} />
+      <Testimonials testimonials={content.testimonials || []} />
 
       {/* 10. Social */}
-      <SocialSection contact={content.siteSettings.contact} />
+      {content.siteSettings?.contact && (
+        <SocialSection contact={content.siteSettings.contact} />
+      )}
 
       {/* 11. Contact */}
-      <ContactSection
-        contact={content.siteSettings.contact}
-        initialService={selectedService}
-      />
+      {content.siteSettings?.contact && (
+        <ContactSection
+          contact={content.siteSettings.contact}
+          initialService={selectedService}
+        />
+      )}
 
       {/* 12. Footer */}
-      <Footer
-        footer={content.siteSettings.footer}
-        contact={content.siteSettings.contact}
-        onAdminClick={() => navigateTo(adminUser ? '/admin' : '/admin/login')}
-      />
+      {content.siteSettings?.footer && (
+        <Footer
+          footer={content.siteSettings.footer}
+          contact={content.siteSettings.contact}
+          onAdminClick={() => navigateTo(adminUser ? '/admin' : '/admin/login')}
+        />
+      )}
     </div>
   );
 }
+
 export { App };
