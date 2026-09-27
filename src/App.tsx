@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/public/Navbar';
+import { Hero } from './components/public/Hero';
 import { FilmsShowcase } from './components/public/FilmsShowcase';
 import { About } from './components/public/About';
 import { Services } from './components/public/Services';
@@ -97,6 +98,14 @@ export default function App() {
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const [authChecking, setAuthChecking] = useState(true);
 
+  // Auto Safety Timer: 1.5 second baad loading screen apne aap gayab ho jayegi
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowLoadingScreen(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Sync with browser navigation
   useEffect(() => {
     const handlePopState = () => {
@@ -112,7 +121,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Verify Admin Session on mount with Timeout Safety
+  // Verify Admin Session
   useEffect(() => {
     let isMounted = true;
     const verifyAuth = async () => {
@@ -124,7 +133,7 @@ export default function App() {
       try {
         const authPromise = fetchAdminMe();
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Auth Timeout')), 3000)
+          setTimeout(() => reject(new Error('Auth Timeout')), 2000)
         );
         const { admin }: any = await Promise.race([authPromise, timeoutPromise]);
         if (isMounted) setAdminUser(admin);
@@ -139,13 +148,13 @@ export default function App() {
     return () => { isMounted = false; };
   }, []);
 
-  // Fetch Public Content with 3-Second Timeout Safety
+  // Fetch Public Content
   const loadPublicContent = async () => {
     try {
       setLoading(true);
       const apiPromise = fetchPublicContent();
       const timeoutPromise = new Promise((resolve) =>
-        setTimeout(() => resolve(null), 3000)
+        setTimeout(() => resolve(null), 2000)
       );
 
       const data: any = await Promise.race([apiPromise, timeoutPromise]);
@@ -153,11 +162,9 @@ export default function App() {
       if (data && data.siteSettings) {
         setContent(data);
       } else {
-        console.warn('Backend connection delayed/unavailable. Loaded fallback content.');
         setContent(fallbackContent);
       }
     } catch (err) {
-      console.error('Failed to load public portfolio content, using fallback:', err);
       setContent(fallbackContent);
     } finally {
       setLoading(false);
@@ -247,16 +254,19 @@ export default function App() {
       {/* 1. Sticky Navigation */}
       <Navbar onAdminClick={() => navigateTo(adminUser ? '/admin' : '/admin/login')} />
 
-      {/* 2. About Section */}
+      {/* 2. Hero Section */}
+      {siteSettings?.hero && <Hero hero={siteSettings.hero} />}
+
+      {/* 3. About Section */}
       {siteSettings?.about && <About about={siteSettings.about} />}
 
-      {/* 3. Cinematography / Films Showcase */}
+      {/* 4. Cinematography / Films Showcase */}
       <FilmsShowcase films={films} />
 
-      {/* 4. Portfolio Section */}
+      {/* 5. Portfolio Section */}
       <Portfolio portfolio={portfolio} />
 
-      {/* 5. Services Section */}
+      {/* 6. Services Section */}
       <Services
         services={services}
         onSelectService={(title) => {
@@ -266,25 +276,25 @@ export default function App() {
         }}
       />
 
-      {/* 6. Featured Story Section */}
+      {/* 7. Featured Story Section */}
       {siteSettings?.featuredStory && (
         <FeaturedStory story={siteSettings.featuredStory} />
       )}
 
-      {/* 7. Highlights Section */}
+      {/* 8. Highlights Section */}
       {siteSettings?.highlights && (
         <Highlights highlights={siteSettings.highlights} />
       )}
 
-      {/* 8. Testimonials Section */}
+      {/* 9. Testimonials Section */}
       <Testimonials testimonials={testimonials} />
 
-      {/* 9. Social Section */}
+      {/* 10. Social Section */}
       {siteSettings?.contact && (
         <SocialSection contact={siteSettings.contact} />
       )}
 
-      {/* 10. Contact Section */}
+      {/* 11. Contact Section */}
       {siteSettings?.contact && (
         <ContactSection
           contact={siteSettings.contact}
@@ -292,7 +302,7 @@ export default function App() {
         />
       )}
 
-      {/* 11. Footer */}
+      {/* 12. Footer */}
       {siteSettings?.footer && siteSettings?.contact && (
         <Footer
           footer={siteSettings.footer}
