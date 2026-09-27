@@ -1,102 +1,53 @@
 import React from 'react';
-import { Instagram, Youtube, Facebook, ArrowUpRight, Sparkles } from 'lucide-react';
-import { SiteSettings } from '../../types';
-import { Card3D } from '../common/Card3D';
+import { Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
+import { SiteContact } from '../../types';
 
 interface SocialSectionProps {
-  contact: SiteSettings['contact'];
+  contact?: SiteContact;
 }
 
 export const SocialSection: React.FC<SocialSectionProps> = ({ contact }) => {
-  const socials = [
-    {
-      name: 'Instagram',
-      handle: '@rishabhsen_films',
-      description: 'Daily backstage reels, lighting breakdowns & cinema stills.',
-      icon: Instagram,
-      url: contact.instagram || 'https://instagram.com',
-      followers: '85K+',
-      color: 'from-[#65E6EA] to-[#8B7CFF]',
-    },
-    {
-      name: 'YouTube',
-      handle: 'Rishabh Sen Cinema',
-      description: '4K heirloom wedding films, gear talk & color grading breakdowns.',
-      icon: Youtube,
-      url: contact.youtube || 'https://youtube.com',
-      followers: '120K+',
-      color: 'from-[#8B7CFF] to-[#C56CFF]',
-    },
-    {
-      name: 'Facebook',
-      handle: 'Rishabh Sen Visuals',
-      description: 'Full ceremony albums, venue spotlight galleries & press features.',
-      icon: Facebook,
-      url: contact.facebook || 'https://facebook.com',
-      followers: '45K+',
-      color: 'from-[#65E6EA] to-[#3B82F6]',
-    },
-  ];
-
   return (
-    <section className="py-24 bg-[#080B0D] relative border-t border-white/10 z-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#12181C] border border-[#65E6EA]/30 text-xs font-semibold tracking-wider text-[#65E6EA] uppercase mb-4 shadow-[0_0_15px_rgba(101,230,234,0.15)]">
-              <Sparkles className="w-3.5 h-3.5 text-[#8B7CFF]" />
-              <span>07. Digital Channels</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white font-display">
-              Connect & <span className="gradient-studio-text">Follow</span>
-            </h2>
-          </div>
-          <p className="text-xs sm:text-sm text-[#9CA7AD] max-w-sm font-sans-clean font-light leading-relaxed">
-            Experience our latest cinematic reels, color studies, and private showcases in real-time across social channels.
-          </p>
-        </div>
-
-        {/* 3D Social Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {socials.map((soc) => {
-            const Icon = soc.icon;
-            return (
-              <Card3D key={soc.name} maxTilt={8} glareOpacity={0.18}>
-                <a
-                  href={soc.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group bg-[#12181C] border border-white/10 hover:border-[#65E6EA]/40 p-7 rounded-2xl transition-all duration-300 flex flex-col justify-between h-full shadow-xl"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-5">
-                      <div className="w-12 h-12 rounded-xl bg-[#0D1215] border border-white/10 flex items-center justify-center text-[#65E6EA] group-hover:scale-110 group-hover:text-white transition-all shadow-inner">
-                        <Icon className="w-6 h-6" />
-                      </div>
-                      <span className="text-xs font-mono text-[#9CA7AD]">{soc.followers} Community</span>
-                    </div>
-
-                    <h3 className="text-xl font-display font-bold text-white mb-1">
-                      {soc.name}
-                    </h3>
-                    <div className="text-xs font-mono text-[#65E6EA] mb-3">
-                      {soc.handle}
-                    </div>
-                    <p className="text-xs sm:text-sm text-[#9CA7AD] leading-relaxed font-sans-clean font-light">
-                      {soc.description}
-                    </p>
-                  </div>
-
-                  <div className="pt-5 mt-5 border-t border-white/5 flex items-center justify-between text-xs text-[#65E6EA] uppercase tracking-wider font-bold">
-                    <span>Visit Channel</span>
-                    <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                  </div>
-                </a>
-              </Card3D>
-            );
-          })}
+    <section className="py-20 bg-[#080B0D] border-t border-white/10 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 text-center space-y-8">
+        <span className="text-xs uppercase tracking-[0.3em] text-[#65E6EA] font-mono">Connect</span>
+        <h2 className="text-3xl md:text-4xl font-serif font-bold text-white">Join the Journey</h2>
+        <div className="flex flex-wrap items-center justify-center gap-6 pt-2">
+          {contact?.instagramUrl && (
+            <a
+              href={contact.instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#12181C] border border-white/10 hover:border-[#65E6EA] hover:text-[#65E6EA] transition text-xs font-mono tracking-widest uppercase"
+            >
+              <Instagram className="w-4 h-4 text-[#65E6EA]" />
+              Instagram
+            </a>
+          )}
+          {contact?.youtubeUrl && (
+            <a
+              href={contact.youtubeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#12181C] border border-white/10 hover:border-[#65E6EA] hover:text-[#65E6EA] transition text-xs font-mono tracking-widest uppercase"
+            >
+              <Youtube className="w-4 h-4 text-[#65E6EA]" />
+              YouTube Cinema
+            </a>
+          )}
+          {contact?.email && (
+            <a
+              href={`mailto:${contact.email}`}
+              className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#12181C] border border-white/10 hover:border-[#65E6EA] hover:text-[#65E6EA] transition text-xs font-mono tracking-widest uppercase"
+            >
+              <Mail className="w-4 h-4 text-[#65E6EA]" />
+              Email
+            </a>
+          )}
         </div>
       </div>
     </section>
   );
 };
+
+export default SocialSection;
